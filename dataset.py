@@ -32,7 +32,7 @@ class iWildCam(Dataset):
 
         logger.info(f'Loading {"test" if test else "train"} iWildCam dataset')
 		time_t = datetime.datetime.utcnow()
-		with open(dataset_file, 'r') as f
+		with open(dataset_file, 'r') as f:
             self.dataset = json.load(f)
 		logger.info("Done in {}".format(datetime.datetime.utcnow() - time_t))
 		logger.info(f"The dataset contains the following keys: {self.dataset.keys()}")
