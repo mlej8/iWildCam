@@ -130,8 +130,9 @@ class iWildCam(Dataset):
 
 		# get target for training faster RCNN
 		target = {}
-		
-		if self.bbox[img_id] and [detection["bbox"] for detection in self.bbox[img_id] if ((detection["bbox"][2] - detection["bbox"][0])* (detection["bbox"][3]-detection["bbox"][1])) > 0]:
+		valid_bbox = [detection["bbox"] for detection in self.bbox[img_id] if (detection["bbox"][2] - detection["bbox"][0] > 0) and (detection["bbox"][3]-detection["bbox"][1] > 0)]
+
+		if self.bbox[img_id] and valid_bbox:
 			
 			""" 
 			Bounding boxes from MegaDetector are in normalized, floating-point coordinates, with the origin at the upper-left.
@@ -143,7 +144,7 @@ class iWildCam(Dataset):
 			}
 			"""
 			# get the bounding boxes (given by MegaDetector) for the image and use if label
-			target["boxes"] = torch.tensor([detection["bbox"] for detection in self.bbox[img_id] if ((detection["bbox"][2] - detection["bbox"][0])* (detection["bbox"][3]-detection["bbox"][1])) > 0])
+			target["boxes"] = torch.tensor(valid_bbox)
 
 			# scale bounding boxes back to their original scale
 			target["boxes"][:,[1,3]] *= image_ann["height"]
@@ -151,7 +152,7 @@ class iWildCam(Dataset):
 
 			# assuming detections all come from same class
 			category = self.annotations[img_id]['category_id']
-			target["labels"] = torch.full(size=(target["boxes"].size(0),), fill_value=self.cat_to_idx[category])
+			target["labels"] = torch.full(size=(target["boxes"].size(0),), fill_value=self.cat_to_idx[category], dtype=torch.long)
 
 			# include all instances for evaluation
 			target["iscrowd"] = torch.zeros(size=(target["boxes"].size(0),))
